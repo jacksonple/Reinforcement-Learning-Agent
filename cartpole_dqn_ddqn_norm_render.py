@@ -14,9 +14,8 @@ import torch.nn as nn
 import torch.optim as optim
 
 
-# -----------------------------
 # Utilities
-# -----------------------------
+
 def make_device():
    if torch.cuda.is_available():
       return torch.device("cuda")
@@ -31,9 +30,9 @@ def set_seed(seed: int):
    torch.manual_seed(seed)
 
 
-# -----------------------------
-# Running Normalizer (Welford)
-# -----------------------------
+
+# Running Normalizer (Welford) #
+
 class RunningNorm:
    """
     Online mean/variance tracker for observation normalization.
@@ -74,9 +73,7 @@ class RunningNorm:
       return (x - self.mean) / np.sqrt(self.var + self.eps)
 
 
-# -----------------------------
-# Replay Buffer
-# -----------------------------
+# Replay Buffer #
 Transition = namedtuple("Transition", ["s", "a", "r", "s2", "d"])
 
 class ReplayBuffer:
@@ -113,9 +110,7 @@ class ReplayBuffer:
       return b_s, b_a, b_r, b_s2, b_d
 
 
-# -----------------------------
 # Q-Network
-# -----------------------------
 class QNet(nn.Module):
    def __init__(self, obs_dim, act_dim, hidden=128):
       super().__init__()
@@ -140,9 +135,8 @@ class QNet(nn.Module):
       return self.net(x)
 
 
-# -----------------------------
 # Epsilon schedule
-# -----------------------------
+
 class EpsGreedy:
    def __init__(self, eps_start=1.0, eps_end=0.05, decay_steps=20000):
       self.start = eps_start
@@ -158,9 +152,9 @@ class EpsGreedy:
       self.t += 1
 
 
-# -----------------------------
+
 # Select action
-# -----------------------------
+
 def select_action(qnet, obs_normed, eps, act_dim, device):
    if random.random() < eps:
       return random.randrange(act_dim)
@@ -169,9 +163,8 @@ def select_action(qnet, obs_normed, eps, act_dim, device):
       return int(q.argmax(dim=1).item())
 
 
-# -----------------------------
+
 # Training (Double-DQN)
-# -----------------------------
 def train(args):
    device = make_device()
    set_seed(args.seed)
@@ -203,7 +196,7 @@ def train(args):
    step = 0
    episode = 0
 
-   # Optional: preview training visually every N episodes using a separate env
+   # preview training visually every N episodes using a separate env
    def preview_episode():
       if args.render_train_freq <= 0:
          return
@@ -315,9 +308,9 @@ def train(args):
    evaluate(args, model_path=args.best_path, n_episodes=10, render=args.render_eval)
 
 
-# -----------------------------
+
 # Robust evaluate (safe load)
-# -----------------------------
+   
 def _safe_load_checkpoint(path, map_location="cpu"):
    """
     Robust loader for PyTorch 2.6+. Tries weights_only=True first,
@@ -378,9 +371,9 @@ def evaluate(args, model_path, n_episodes=10, render=False):
    print(f"Eval avg return over {n_episodes} eps: {np.mean(scores):.1f}")
 
 
-# -----------------------------
+
 # Main / CLI
-# -----------------------------
+
 def parse_args():
    p = argparse.ArgumentParser()
    # Training
